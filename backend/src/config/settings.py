@@ -16,3 +16,6 @@ APP_HOST: str = _require_env("APP_HOST")
 APP_PORT: int = int(_require_env("APP_PORT"))
 APP_ENV: str = _require_env("APP_ENV")
 FRONTEND_URL: str = _require_env("FRONTEND_URL")
+
+LINE_CHANNEL_SECRET: str = _require_env("LINE_CHANNEL_SECRET")
+LINE_CHANNEL_ACCESS_TOKEN: str = _require_env("LINE_CHANNEL_ACCESS_TOKEN")
