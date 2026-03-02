@@ -1,21 +1,22 @@
 from constants.ai import (
-    ANTHROPIC_MAX_TOKENS,
     CHAT_LOG_PREFIX,
     LOG_FETCH_DAYS,
     MAIL_FETCH_DAYS,
     MAIL_FETCH_MAX,
     MAIL_LOG_PREFIX,
     MAX_CONTEXT_CHARS,
-    SECRETARY_SYSTEM_PROMPT,
+    SUMMARY_MAX_TOKENS,
+    SUMMARY_NO_DATA_ERROR,
+    SUMMARY_SYSTEM_PROMPT,
 )
-from domain.commons.result import Result
+from domain.commons.result import Result, fail
 from domain.repositories.ai_chat.ai_chat_repository import AiChatRepository
 from domain.repositories.chat_log.chat_log_repository import ChatLogRepository
 from domain.repositories.mail_log.mail_log_repository import MailLogRepository
 from utils.text import truncate
 
 
-class GenerateReplyUseCase:
+class GenerateSummaryUseCase:
     def __init__(
         self,
         ai_chat_repository: AiChatRepository,
@@ -26,7 +27,7 @@ class GenerateReplyUseCase:
         self._chat_log_repository = chat_log_repository
         self._mail_log_repository = mail_log_repository
 
-    async def execute(self, user_message: str) -> Result[str, str]:
+    async def execute(self) -> Result[str, str]:
         context_parts: list[str] = []
         per_source_limit = MAX_CONTEXT_CHARS // 2
 
@@ -42,11 +43,11 @@ class GenerateReplyUseCase:
             truncated = truncate(mail_result.data, per_source_limit)
             context_parts.append(f"{MAIL_LOG_PREFIX}\n\n{truncated}")
 
-        if context_parts:
-            enriched_message = "\n\n".join([*context_parts, user_message])
-        else:
-            enriched_message = user_message
+        if not context_parts:
+            return fail(SUMMARY_NO_DATA_ERROR)
+
+        enriched_message = "\n\n".join(context_parts)
 
         return await self._ai_chat_repository.generate_reply(
-            enriched_message, SECRETARY_SYSTEM_PROMPT, ANTHROPIC_MAX_TOKENS,
+            enriched_message, SUMMARY_SYSTEM_PROMPT, SUMMARY_MAX_TOKENS,
         )

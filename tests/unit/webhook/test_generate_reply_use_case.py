@@ -3,7 +3,13 @@ from unittest.mock import AsyncMock
 import pytest
 
 from application.usecases.webhook.generate_reply_use_case import GenerateReplyUseCase
-from constants.ai import CHAT_LOG_PREFIX, MAIL_LOG_PREFIX, MAX_CONTEXT_CHARS
+from constants.ai import (
+    ANTHROPIC_MAX_TOKENS,
+    CHAT_LOG_PREFIX,
+    MAIL_LOG_PREFIX,
+    MAX_CONTEXT_CHARS,
+    SECRETARY_SYSTEM_PROMPT,
+)
 from domain.commons.result import fail, ok
 
 
@@ -99,7 +105,9 @@ async def test_should_send_only_user_message_when_logs_fail(
 
     result = await use_case.execute("テスト")
 
-    mock_ai_chat_repository.generate_reply.assert_called_once_with("テスト")
+    mock_ai_chat_repository.generate_reply.assert_called_once_with(
+        "テスト", SECRETARY_SYSTEM_PROMPT, ANTHROPIC_MAX_TOKENS,
+    )
     assert result.is_success is True
 
 
@@ -118,7 +126,9 @@ async def test_should_send_only_user_message_when_logs_empty(
 
     result = await use_case.execute("テスト")
 
-    mock_ai_chat_repository.generate_reply.assert_called_once_with("テスト")
+    mock_ai_chat_repository.generate_reply.assert_called_once_with(
+        "テスト", SECRETARY_SYSTEM_PROMPT, ANTHROPIC_MAX_TOKENS,
+    )
     assert result.is_success is True
 
 

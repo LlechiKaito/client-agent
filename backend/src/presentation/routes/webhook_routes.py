@@ -5,6 +5,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 
 from application.errors.application_error import ValidationError
 from application.services.webhook.webhook_application_service import WebhookApplicationService
+from constants.ai import SUMMARY_KEYWORD
 from constants.http import HTTP_STATUS_OK
 from constants.line import LINE_SIGNATURE_HEADER, WEBHOOK_RESPONSE_OK
 from domain.errors.domain_error import DOMAIN_ERRORS
@@ -49,10 +50,17 @@ async def handle_callback(request: Request, background_tasks: BackgroundTasks) -
 
         user_id = event.source.user_id
         await _webhook_service.send_thinking_reply(reply_token=event.reply_token)
-        background_tasks.add_task(
-            _webhook_service.generate_and_push_reply,
-            user_id=user_id,
-            text=event.message.text,
-        )
+
+        if event.message.text.strip() == SUMMARY_KEYWORD:
+            background_tasks.add_task(
+                _webhook_service.generate_and_push_summary,
+                user_id=user_id,
+            )
+        else:
+            background_tasks.add_task(
+                _webhook_service.generate_and_push_reply,
+                user_id=user_id,
+                text=event.message.text,
+            )
 
     return WEBHOOK_RESPONSE_OK

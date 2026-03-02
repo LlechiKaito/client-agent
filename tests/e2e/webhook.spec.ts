@@ -49,4 +49,32 @@ test.describe("LINE Webhook Endpoint", () => {
 
     expect(response.status()).toBe(200);
   });
+
+  test("should accept webhook with non-message event type", async ({
+    request,
+  }) => {
+    const channelSecret = E2E_CHANNEL_SECRET;
+    const body = buildWebhookBody([
+      {
+        type: "follow",
+        mode: "active",
+        timestamp: 1234567890123,
+        source: { type: "user", userId: "U1234567890abcdef" },
+        webhookEventId: "event-id-follow",
+        deliveryContext: { isRedelivery: false },
+        replyToken: "reply-token-follow",
+      },
+    ]);
+    const signature = generateSignature(body, channelSecret);
+
+    const response = await request.post(`${BACKEND_URL}/callback`, {
+      data: body,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Line-Signature": signature,
+      },
+    });
+
+    expect(response.status()).toBe(200);
+  });
 });

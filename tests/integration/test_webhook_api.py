@@ -119,6 +119,33 @@ async def test_callback_returns_400_with_invalid_signature(app) -> None:
 
 
 @pytest.mark.anyio
+async def test_callback_returns_ok_with_summary_keyword(app) -> None:
+    body = _build_webhook_body([
+        _build_text_message_event("reply-token-summary", "まとめ"),
+    ])
+    signature = _generate_signature(body, CHANNEL_SECRET)
+
+    mock_service = AsyncMock()
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        with patch(
+            "presentation.routes.webhook_routes._webhook_service",
+            mock_service,
+        ):
+            res = await client.post(
+                "/callback",
+                content=body,
+                headers={"X-Line-Signature": signature},
+            )
+
+    assert res.status_code == HTTP_STATUS_OK
+    mock_service.send_thinking_reply.assert_called_once_with(
+        reply_token="reply-token-summary",
+    )
+
+
+@pytest.mark.anyio
 async def test_callback_returns_400_without_signature(app) -> None:
     body = _build_webhook_body([])
 

@@ -5,6 +5,9 @@ from linebot.v3.webhook import WebhookParser
 from application.errors.application_error import ApplicationError
 from application.services.webhook.webhook_application_service import WebhookApplicationService
 from application.usecases.webhook.generate_reply_use_case import GenerateReplyUseCase
+from application.usecases.webhook.generate_summary_use_case import (
+    GenerateSummaryUseCase,
+)
 from config.settings import (
     ANTHROPIC_API_KEY,
     FRONTEND_URL,
@@ -57,8 +60,14 @@ def create_app() -> FastAPI:
         chat_log_repository=gas_chat_log_client,
         mail_log_repository=gas_mail_client,
     )
+    generate_summary_use_case = GenerateSummaryUseCase(
+        ai_chat_repository=anthropic_chat_client,
+        chat_log_repository=gas_chat_log_client,
+        mail_log_repository=gas_mail_client,
+    )
     webhook_service = WebhookApplicationService(
         generate_reply_use_case=generate_reply_use_case,
+        generate_summary_use_case=generate_summary_use_case,
         message_repository=line_messaging_client,
     )
     webhook_parser = WebhookParser(channel_secret=LINE_CHANNEL_SECRET)

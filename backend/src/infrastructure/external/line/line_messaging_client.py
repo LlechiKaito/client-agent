@@ -7,7 +7,24 @@ from linebot.v3.messaging import (
     TextMessage,
 )
 
+from constants.line import LINE_MESSAGE_MAX_CHARS
 from domain.commons.result import Result, ok
+
+
+def _split_message(text: str) -> list[str]:
+    if len(text) <= LINE_MESSAGE_MAX_CHARS:
+        return [text]
+    chunks: list[str] = []
+    while text:
+        if len(text) <= LINE_MESSAGE_MAX_CHARS:
+            chunks.append(text)
+            break
+        split_pos = text.rfind("\n", 0, LINE_MESSAGE_MAX_CHARS)
+        if split_pos == -1:
+            split_pos = LINE_MESSAGE_MAX_CHARS
+        chunks.append(text[:split_pos])
+        text = text[split_pos:].lstrip("\n")
+    return chunks
 
 
 class LineMessagingClient:
@@ -39,4 +56,18 @@ class LineMessagingClient:
                 messages=[TextMessage(text=text)],
             )
         )
+        return ok(None)
+
+    async def push_long_text(
+        self, user_id: str, text: str,
+    ) -> Result[None, str]:
+        api = self._get_api()
+        chunks = _split_message(text)
+        for chunk in chunks:
+            await api.push_message(
+                PushMessageRequest(
+                    to=user_id,
+                    messages=[TextMessage(text=chunk)],
+                )
+            )
         return ok(None)
