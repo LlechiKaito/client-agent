@@ -2,6 +2,7 @@ from linebot.v3.messaging import (
     AsyncApiClient,
     AsyncMessagingApi,
     Configuration,
+    PushMessageRequest,
     ReplyMessageRequest,
     TextMessage,
 )
@@ -25,6 +26,16 @@ class LineMessagingClient:
         await api.reply_message(
             ReplyMessageRequest(
                 reply_token=reply_token,
+                messages=[TextMessage(text=text)],
+            )
+        )
+        return ok(None)
+
+    async def push_text(self, user_id: str, text: str) -> Result[None, str]:
+        api = self._get_api()
+        await api.push_message(
+            PushMessageRequest(
+                to=user_id,
                 messages=[TextMessage(text=text)],
             )
         )

@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from application.services.webhook.webhook_application_service import WebhookApplicationService
+from constants.line import THINKING_MESSAGE
 from domain.commons.result import fail, ok
 
 
@@ -17,6 +18,7 @@ def mock_generate_reply_use_case() -> AsyncMock:
 def mock_message_repository() -> AsyncMock:
     repo = AsyncMock()
     repo.reply_text.return_value = ok(None)
+    repo.push_text.return_value = ok(None)
     return repo
 
 
@@ -31,27 +33,37 @@ def webhook_service(
     )
 
 
-async def test_should_generate_reply_and_send_via_line(
+async def test_send_thinking_reply_calls_reply_text(
+    webhook_service: WebhookApplicationService,
+    mock_message_repository: AsyncMock,
+) -> None:
+    result = await webhook_service.send_thinking_reply(reply_token="token-abc")
+
+    mock_message_repository.reply_text.assert_called_once_with("token-abc", THINKING_MESSAGE)
+    assert result.is_success is True
+
+
+async def test_generate_and_push_reply_sends_ai_response(
     webhook_service: WebhookApplicationService,
     mock_generate_reply_use_case: AsyncMock,
     mock_message_repository: AsyncMock,
 ) -> None:
-    result = await webhook_service.handle_text_message(
-        reply_token="token-abc",
+    result = await webhook_service.generate_and_push_reply(
+        user_id="U1234567890",
         text="会議の日程を調整してください",
     )
 
     mock_generate_reply_use_case.execute.assert_called_once_with(
         "会議の日程を調整してください"
     )
-    mock_message_repository.reply_text.assert_called_once_with(
-        "token-abc",
+    mock_message_repository.push_text.assert_called_once_with(
+        "U1234567890",
         "返信案：承知いたしました。",
     )
     assert result.is_success is True
 
 
-async def test_should_return_failure_when_ai_fails(
+async def test_generate_and_push_reply_returns_failure_when_ai_fails(
     mock_generate_reply_use_case: AsyncMock,
     mock_message_repository: AsyncMock,
 ) -> None:
@@ -61,11 +73,11 @@ async def test_should_return_failure_when_ai_fails(
         message_repository=mock_message_repository,
     )
 
-    result = await service.handle_text_message(
-        reply_token="token-abc",
+    result = await service.generate_and_push_reply(
+        user_id="U1234567890",
         text="テスト",
     )
 
     assert result.is_success is False
     assert result.error == "AI error"
-    mock_message_repository.reply_text.assert_not_called()
+    mock_message_repository.push_text.assert_not_called()

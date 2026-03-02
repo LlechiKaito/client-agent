@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, BackgroundTasks, Request
 from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.webhook import WebhookParser
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
@@ -25,7 +25,7 @@ def init_webhook_routes(
 
 
 @router.post("/callback", status_code=HTTP_STATUS_OK)
-async def handle_callback(request: Request) -> str:
+async def handle_callback(request: Request, background_tasks: BackgroundTasks) -> str:
     signature = request.headers.get(LINE_SIGNATURE_HEADER, "")
     body = await request.body()
     body_text = body.decode()
@@ -46,8 +46,12 @@ async def handle_callback(request: Request) -> str:
             continue
         if not isinstance(event.message, TextMessageContent):
             continue
-        await _webhook_service.handle_text_message(
-            reply_token=event.reply_token,
+
+        user_id = event.source.user_id
+        await _webhook_service.send_thinking_reply(reply_token=event.reply_token)
+        background_tasks.add_task(
+            _webhook_service.generate_and_push_reply,
+            user_id=user_id,
             text=event.message.text,
         )
 

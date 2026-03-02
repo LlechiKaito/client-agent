@@ -70,7 +70,7 @@ def app():
 
 
 @pytest.mark.anyio
-async def test_callback_returns_ok_with_valid_signature(app) -> None:
+async def test_callback_returns_ok_and_sends_thinking_reply(app) -> None:
     body = _build_webhook_body([
         _build_text_message_event("reply-token-1", "hello"),
     ])
@@ -91,9 +91,8 @@ async def test_callback_returns_ok_with_valid_signature(app) -> None:
             )
 
     assert res.status_code == HTTP_STATUS_OK
-    mock_service.handle_text_message.assert_called_once_with(
+    mock_service.send_thinking_reply.assert_called_once_with(
         reply_token="reply-token-1",
-        text="hello",
     )
 
 
