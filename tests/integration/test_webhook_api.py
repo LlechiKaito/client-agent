@@ -1,8 +1,8 @@
+import base64
 import hashlib
 import hmac
-import json
-import base64
 import importlib
+import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -12,6 +12,7 @@ from constants.http import HTTP_STATUS_BAD_REQUEST, HTTP_STATUS_OK
 
 CHANNEL_SECRET = "test-channel-secret"
 CHANNEL_ACCESS_TOKEN = "test-channel-access-token"
+ANTHROPIC_API_KEY = "test-anthropic-api-key"
 
 
 def _generate_signature(body: str, secret: str) -> str:
@@ -56,6 +57,7 @@ def app():
             "FRONTEND_URL": "http://localhost:5173",
             "LINE_CHANNEL_SECRET": CHANNEL_SECRET,
             "LINE_CHANNEL_ACCESS_TOKEN": CHANNEL_ACCESS_TOKEN,
+            "ANTHROPIC_API_KEY": ANTHROPIC_API_KEY,
         },
     ):
         import config.settings as settings_module

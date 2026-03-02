@@ -8,7 +8,85 @@ LINE Secretary Bot - AI-powered conversational assistant.
 - **Frontend**: TypeScript / React / Vite / Tailwind CSS
 - **Tests**: pytest / httpx / Playwright
 
+## Setup
+
+### 1. LINE Developers Console で Messaging API チャネルを作成
+
+1. [LINE Developers Console](https://developers.line.biz/) にログイン
+2. プロバイダーを作成（または既存を選択）
+3. **Messaging API** チャネルを新規作成
+4. 「チャネル基本設定」から **チャネルシークレット** をコピー
+5. 「Messaging API設定」から **チャネルアクセストークン** を発行してコピー
+
+### 2. 環境変数を設定
+
+`.env.example` をコピーして `.env` を作成し、値を設定する。
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+**backend/.env**
+
+```env
+# App
+APP_HOST=0.0.0.0
+APP_PORT=8000
+APP_ENV=development
+FRONTEND_URL=http://localhost:5173
+
+# LINE（LINE Developers Console から取得）
+LINE_CHANNEL_SECRET=your-channel-secret
+LINE_CHANNEL_ACCESS_TOKEN=your-channel-access-token
+
+# Anthropic
+ANTHROPIC_API_KEY=your-anthropic-api-key
+```
+
+| 変数 | 説明 | 取得元 |
+|------|------|--------|
+| `APP_HOST` | サーバーバインドアドレス | 固定値 `0.0.0.0` |
+| `APP_PORT` | サーバーポート | 固定値 `8000` |
+| `APP_ENV` | 環境名 | `development` / `production` |
+| `FRONTEND_URL` | フロントエンド URL（CORS 許可対象） | ローカルなら `http://localhost:5173` |
+| `LINE_CHANNEL_SECRET` | LINE チャネルシークレット | LINE Developers Console > チャネル基本設定 |
+| `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン（長期） | LINE Developers Console > Messaging API設定 |
+| `ANTHROPIC_API_KEY` | Anthropic API キー | [Anthropic Console](https://console.anthropic.com/) > API Keys |
+
+**frontend/.env**
+
+```env
+# App
+VITE_API_URL=/api
+VITE_PROXY_TARGET=http://localhost:8000
+```
+
+| 変数 | 説明 |
+|------|------|
+| `VITE_API_URL` | API のベースパス |
+| `VITE_PROXY_TARGET` | 開発時のプロキシ先バックエンド URL |
+
+### 3. Webhook URL を設定
+
+LINE Bot がメッセージを受け取るには、LINE Platform からアクセス可能な HTTPS URL が必要。
+
+**ローカル開発では ngrok を使う:**
+
+```bash
+ngrok http 8000
+```
+
+表示された HTTPS URL（例: `https://xxxx.ngrok-free.app`）を LINE Developers Console に設定:
+
+1. LINE Developers Console > Messaging API設定
+2. **Webhook URL** に `https://xxxx.ngrok-free.app/callback` を入力
+3. **Webhook の利用** を ON にする
+4. **検証** ボタンで疎通を確認
+
 ## Quick Start
+
+### Docker で起動
 
 ```bash
 docker compose up
@@ -16,10 +94,11 @@ docker compose up
 
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000/api/health
+- Webhook: POST http://localhost:8000/callback
 
-## Development
+### ローカルで起動
 
-### Backend
+**Backend:**
 
 ```bash
 cd backend
@@ -27,7 +106,7 @@ pip install . ".[dev]"
 cd src && uvicorn main:app --reload
 ```
 
-### Frontend
+**Frontend:**
 
 ```bash
 cd frontend
@@ -35,15 +114,33 @@ npm install
 npm run dev
 ```
 
-### Tests
+## Usage
+
+1. 上記セットアップ完了後、LINE アプリで Bot を友だち追加（QR コードは LINE Developers Console の Messaging API設定にある）
+2. Bot にテキストメッセージを送信
+3. Claude（秘書 AI）が生成した返信案が LINE に返される
+
+## API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | ヘルスチェック |
+| POST | `/callback` | LINE Webhook エンドポイント |
+
+## Tests
 
 ```bash
-# Unit + Integration
-pytest tests/unit tests/integration -v
+# Unit tests
+cd backend && python -m pytest ../tests/unit/ -v
 
-# E2E (requires running servers)
-cd tests/e2e
-npx playwright test
+# Integration tests
+cd backend && python -m pytest ../tests/integration/ -v
+
+# E2E tests (requires running servers)
+cd tests/e2e && npx playwright test
+
+# E2E webhook tests (separate config)
+cd tests/e2e && npx playwright test --config=playwright.webhook.config.ts
 ```
 
 ## Project Structure

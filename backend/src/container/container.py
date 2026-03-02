@@ -4,8 +4,14 @@ from linebot.v3.webhook import WebhookParser
 
 from application.errors.application_error import ApplicationError
 from application.services.webhook.webhook_application_service import WebhookApplicationService
-from application.usecases.webhook.echo_message_use_case import EchoMessageUseCase
-from config.settings import FRONTEND_URL, LINE_CHANNEL_ACCESS_TOKEN, LINE_CHANNEL_SECRET
+from application.usecases.webhook.generate_reply_use_case import GenerateReplyUseCase
+from config.settings import (
+    ANTHROPIC_API_KEY,
+    FRONTEND_URL,
+    LINE_CHANNEL_ACCESS_TOKEN,
+    LINE_CHANNEL_SECRET,
+)
+from infrastructure.external.anthropic.anthropic_chat_client import AnthropicChatClient
 from infrastructure.external.line.line_messaging_client import LineMessagingClient
 from presentation.errors.error_handler import (
     application_error_handler,
@@ -33,11 +39,15 @@ def create_app() -> FastAPI:
     line_messaging_client = LineMessagingClient(
         channel_access_token=LINE_CHANNEL_ACCESS_TOKEN,
     )
-    echo_use_case = EchoMessageUseCase(
-        message_repository=line_messaging_client,
+    anthropic_chat_client = AnthropicChatClient(
+        api_key=ANTHROPIC_API_KEY,
+    )
+    generate_reply_use_case = GenerateReplyUseCase(
+        ai_chat_repository=anthropic_chat_client,
     )
     webhook_service = WebhookApplicationService(
-        echo_message_use_case=echo_use_case,
+        generate_reply_use_case=generate_reply_use_case,
+        message_repository=line_messaging_client,
     )
     webhook_parser = WebhookParser(channel_secret=LINE_CHANNEL_SECRET)
 
