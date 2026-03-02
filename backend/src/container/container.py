@@ -8,12 +8,14 @@ from application.usecases.webhook.generate_reply_use_case import GenerateReplyUs
 from config.settings import (
     ANTHROPIC_API_KEY,
     FRONTEND_URL,
+    GAS_MAIL_WEBAPP_URL,
     GAS_WEBAPP_URL,
     LINE_CHANNEL_ACCESS_TOKEN,
     LINE_CHANNEL_SECRET,
 )
 from infrastructure.external.anthropic.anthropic_chat_client import AnthropicChatClient
 from infrastructure.external.gas.gas_chat_log_client import GasChatLogClient
+from infrastructure.external.gas.gas_mail_client import GasMailClient
 from infrastructure.external.line.line_messaging_client import LineMessagingClient
 from presentation.errors.error_handler import (
     application_error_handler,
@@ -47,9 +49,13 @@ def create_app() -> FastAPI:
     gas_chat_log_client = GasChatLogClient(
         webapp_url=GAS_WEBAPP_URL,
     )
+    gas_mail_client = GasMailClient(
+        webapp_url=GAS_MAIL_WEBAPP_URL,
+    )
     generate_reply_use_case = GenerateReplyUseCase(
         ai_chat_repository=anthropic_chat_client,
         chat_log_repository=gas_chat_log_client,
+        mail_log_repository=gas_mail_client,
     )
     webhook_service = WebhookApplicationService(
         generate_reply_use_case=generate_reply_use_case,

@@ -23,3 +23,5 @@ LINE_CHANNEL_ACCESS_TOKEN: str = _require_env("LINE_CHANNEL_ACCESS_TOKEN")
 ANTHROPIC_API_KEY: str = _require_env("ANTHROPIC_API_KEY")
 
 GAS_WEBAPP_URL: str = _require_env("GAS_WEBAPP_URL")
+
+GAS_MAIL_WEBAPP_URL: str = _require_env("GAS_MAIL_WEBAPP_URL")
