@@ -1,5 +1,6 @@
 import httpx
 
+from constants.ai import GAS_REQUEST_TIMEOUT_SECONDS
 from domain.commons.result import Result, fail, ok
 
 
@@ -8,7 +9,9 @@ class GasChatLogClient:
         self._webapp_url = webapp_url
 
     async def fetch_logs(self, days: int) -> Result[str, str]:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(
+            timeout=GAS_REQUEST_TIMEOUT_SECONDS,
+        ) as client:
             response = await client.get(
                 self._webapp_url,
                 params={"days": days},
