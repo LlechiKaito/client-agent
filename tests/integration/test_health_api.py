@@ -19,6 +19,7 @@ def app():
             "LINE_CHANNEL_SECRET": "test-secret",
             "LINE_CHANNEL_ACCESS_TOKEN": "test-token",
             "ANTHROPIC_API_KEY": "test-key",
+            "GAS_WEBAPP_URL": "https://script.google.com/test",
         },
     ):
         import config.settings as settings_module

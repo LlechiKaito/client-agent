@@ -11,7 +11,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "cd ../../backend/src && ANTHROPIC_API_KEY=test-e2e-key python3 -m uvicorn main:app --host 0.0.0.0 --port 8000",
+      command: "cd ../../backend/src && ANTHROPIC_API_KEY=test-e2e-key GAS_WEBAPP_URL=https://script.google.com/test python3 -m uvicorn main:app --host 0.0.0.0 --port 8000",
       port: 8000,
       reuseExistingServer: true,
     },

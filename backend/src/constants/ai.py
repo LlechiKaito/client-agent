@@ -8,3 +8,7 @@ SECRETARY_SYSTEM_PROMPT = (
     "返信案は、ビジネスにふさわしい丁寧な文体で書いてください。\n"
     '必ず「返信案：」という見出しをつけて提示してください。'
 )
+
+LOG_FETCH_DAYS = 3
+
+CHAT_LOG_PREFIX = "以下はクライアントとのLINEの会話履歴です"

@@ -11,7 +11,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "cd ../../backend/src && LINE_CHANNEL_SECRET=test-e2e-secret LINE_CHANNEL_ACCESS_TOKEN=test-e2e-token ANTHROPIC_API_KEY=test-e2e-key python3 -m uvicorn main:app --host 0.0.0.0 --port 8000",
+      "cd ../../backend/src && LINE_CHANNEL_SECRET=test-e2e-secret LINE_CHANNEL_ACCESS_TOKEN=test-e2e-token ANTHROPIC_API_KEY=test-e2e-key GAS_WEBAPP_URL=https://script.google.com/test python3 -m uvicorn main:app --host 0.0.0.0 --port 8000",
     port: 8000,
     reuseExistingServer: false,
   },
