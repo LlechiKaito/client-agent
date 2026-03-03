@@ -153,39 +153,55 @@ pip install -r requirements.txt
 cdk bootstrap
 ```
 
-#### 3. 設定ファイルを作成
+#### 3. SSM Parameter Store に機密情報を登録
+
+機密情報は CDK に渡さず、SSM Parameter Store（SecureString）で管理する。
 
 ```bash
-cp cdk.context.example.json cdk.context.json
+# テンプレートから作成し、値を編集
+cp infra/ssm-parameters.example.json infra/ssm-parameters.json
+# 値を実際のシークレットに書き換える
+
+# 一括登録（jq + AWS CLI が必要）
+bash infra/scripts/put-ssm-parameters.sh
 ```
 
-`cdk.context.json` を編集して値を設定:
+| SSM パラメータ名 | 説明 | 取得元 |
+|-----------------|------|--------|
+| `/client-agent/LINE_CHANNEL_SECRET` | LINE チャネルシークレット | LINE Developers Console > チャネル基本設定 |
+| `/client-agent/LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン | LINE Developers Console > Messaging API設定 |
+| `/client-agent/ANTHROPIC_API_KEY` | Anthropic API キー | [Anthropic Console](https://console.anthropic.com/) > API Keys |
+| `/client-agent/GAS_WEBAPP_URL` | GAS WebApp URL（LINE ログ） | GAS デプロイ URL |
+| `/client-agent/GAS_MAIL_WEBAPP_URL` | GAS WebApp URL（Gmail） | GAS デプロイ URL |
 
-| キー | 説明 |
-|-----|------|
-| `line_channel_secret` | LINE チャネルシークレット |
-| `line_channel_access_token` | LINE チャネルアクセストークン |
-| `anthropic_api_key` | Anthropic API キー |
-| `gas_webapp_url` | GAS WebApp URL（LINE ログ） |
-| `gas_mail_webapp_url` | GAS WebApp URL（Gmail） |
+> `infra/ssm-parameters.json` は `.gitignore` に含まれるため、シークレットがリポジトリにコミットされることはない。
 
 #### 4. デプロイ
 
 ```bash
-cdk deploy
+cd infra && cdk deploy
 ```
 
-Lambda がデプロイされる。
+Outputs に `WebhookUrl` が表示される。
 
 #### 5. LINE Webhook URL 設定
 
-Outputs の `WebhookUrl` を [LINE Developers Console](https://developers.line.biz/) の Webhook URL に設定。
+1. [LINE Developers Console](https://developers.line.biz/) > Messaging API設定
+2. **Webhook URL** に `{WebhookUrl}callback` を入力
+3. **Webhook の利用** を ON にする
+4. **検証** ボタンで疎通を確認
 
 #### 6. 更新デプロイ
 
 ```bash
+# 差分確認
+cd infra && cdk diff
+
+# デプロイ
 cd infra && cdk deploy
 ```
+
+> SSM パラメータの値を更新する場合は、`infra/ssm-parameters.json` を編集してスクリプトを再実行する（`--overwrite` 付きなので上書きされる）。Lambda の再デプロイは不要。
 
 ### コスト確認
 
@@ -198,6 +214,7 @@ AWS Cost Explorer → **タグ `App: client-agent`** でフィルタすると、
 | リソース | 月額 |
 |---------|------|
 | Lambda | $0（Free Tier: 100万リクエスト/月） |
+| SSM Parameter Store | $0（Standard パラメータは無料） |
 | **合計** | **≒ $0/月** |
 
 ## Project Structure
