@@ -7,6 +7,10 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+.venv/
+
+# CDK
+cdk.out/
 
 # Node
 node_modules/

@@ -170,7 +170,9 @@ Frontend → S3 Static Website Hosting
 
 ```bash
 cd infra
-pip3 install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 #### 2. 初回のみ: CDK Bootstrap
