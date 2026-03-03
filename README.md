@@ -198,20 +198,19 @@ cp cdk.context.example.json cdk.context.json
 | `gas_webapp_url` | GAS WebApp URL（LINE ログ） |
 | `gas_mail_webapp_url` | GAS WebApp URL（Gmail） |
 
-#### 4. デプロイ
+#### 4. フロントエンドをビルド
+
+```bash
+cd frontend && npm install && npm run build && cd ../infra
+```
+
+#### 5. デプロイ
 
 ```bash
 cdk deploy
 ```
 
-#### 5. フロントエンドデプロイ
-
-```bash
-cd frontend && npm run build
-aws s3 sync dist/ s3://<FrontendBucketName> --delete
-```
-
-`FrontendBucketName` は `cdk deploy` の Outputs に表示される。
+バックエンド（Lambda）+ フロントエンド（S3）が一括でデプロイされる。
 
 #### 6. LINE Webhook URL 設定
 

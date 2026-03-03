@@ -5,8 +5,11 @@ from aws_cdk import (
     Tags,
     aws_lambda as lambda_,
     aws_s3 as s3,
+    aws_s3_deployment as s3deploy,
 )
 from constructs import Construct
+
+FRONTEND_DIST_PATH = "../frontend/dist"
 
 LAMBDA_TIMEOUT_SECONDS = 90
 LAMBDA_MEMORY_MB = 256
@@ -41,6 +44,7 @@ class ClientAgentStack(Stack):
             gas_mail_webapp_url=gas_mail_webapp_url,
         )
         frontend_bucket = self._create_frontend_bucket()
+        self._deploy_frontend(frontend_bucket)
 
         self._add_outputs(function_url, frontend_bucket)
 
@@ -95,6 +99,14 @@ class ClientAgentStack(Stack):
                 ignore_public_acls=False,
                 restrict_public_buckets=False,
             ),
+        )
+
+    def _deploy_frontend(self, bucket: s3.Bucket) -> None:
+        s3deploy.BucketDeployment(
+            self,
+            "FrontendDeployment",
+            sources=[s3deploy.Source.asset(FRONTEND_DIST_PATH)],
+            destination_bucket=bucket,
         )
 
     def _add_outputs(
