@@ -67,6 +67,10 @@ class ClientAgentStack(Stack):
                     command=[
                         "bash", "-c",
                         "pip install -r requirements.txt -t /asset-output"
+                        " --platform manylinux2014_x86_64"
+                        " --implementation cp"
+                        " --python-version 3.11"
+                        " --only-binary=:all:"
                         " && cp -r . /asset-output",
                     ],
                 ),
