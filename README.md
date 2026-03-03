@@ -148,7 +148,7 @@ cd tests/e2e && npx playwright test --config=playwright.webhook.config.ts
 ### 前提
 
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) インストール済み
-- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html) インストール済み
+- [AWS CDK CLI](https://docs.aws.amazon.com/cdk/v2/guide/getting-started.html) インストール済み（`npm install -g aws-cdk`）
 - `aws configure` で認証設定済み
 
 ### アーキテクチャ
@@ -166,49 +166,61 @@ Frontend → S3 Static Website Hosting
 
 ### 手順
 
-#### 1. ビルド
+#### 1. CDK セットアップ
 
 ```bash
-sam build
+cd infra
+pip install -r requirements.txt
 ```
 
-#### 2. デプロイ（初回は `--guided`）
+#### 2. 初回のみ: CDK Bootstrap
 
 ```bash
-sam deploy --guided
+cdk bootstrap
 ```
 
-対話形式でパラメータを入力:
+#### 3. デプロイ
 
-| パラメータ | 説明 |
-|-----------|------|
-| Stack Name | CloudFormation スタック名（例: `client-agent`） |
-| AppName | アプリ名タグ（例: `client-agent`） |
-| AppEnv | 環境名（例: `production`） |
-| FrontendUrl | デプロイ後に S3 URL を設定（初回は仮値で OK） |
-| LineChannelSecret | LINE チャネルシークレット |
-| LineChannelAccessToken | LINE チャネルアクセストークン |
-| AnthropicApiKey | Anthropic API キー |
-| GasWebappUrl | GAS WebApp URL（LINE ログ） |
-| GasMailWebappUrl | GAS WebApp URL（Gmail） |
+```bash
+cdk deploy
+```
 
-#### 3. フロントエンドデプロイ
+コンテキストでアプリ名・環境名を指定可能:
+
+```bash
+cdk deploy -c app_name=client-agent -c app_env=production
+```
+
+#### 4. Lambda 環境変数を設定
+
+デプロイ後、AWS コンソールまたは CLI で Lambda に環境変数を設定:
+
+| 環境変数 | 説明 |
+|---------|------|
+| `FRONTEND_URL` | フロントエンド URL（S3 Website URL） |
+| `LINE_CHANNEL_SECRET` | LINE チャネルシークレット |
+| `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン |
+| `ANTHROPIC_API_KEY` | Anthropic API キー |
+| `GAS_WEBAPP_URL` | GAS WebApp URL（LINE ログ） |
+| `GAS_MAIL_WEBAPP_URL` | GAS WebApp URL（Gmail） |
+
+#### 5. フロントエンドデプロイ
 
 ```bash
 cd frontend && npm run build
 aws s3 sync dist/ s3://<FrontendBucketName> --delete
 ```
 
-`FrontendBucketName` は `sam deploy` の Outputs に表示される。
+`FrontendBucketName` は `cdk deploy` の Outputs に表示される。
 
-#### 4. LINE Webhook URL 設定
+#### 6. LINE Webhook URL 設定
 
 Outputs の `WebhookUrl` を [LINE Developers Console](https://developers.line.biz/) の Webhook URL に設定。
 
-#### 5. 更新デプロイ
+#### 7. 更新デプロイ
 
 ```bash
-sam build && sam deploy
+cd infra && cdk deploy
 ```
 
 ### コスト確認
@@ -246,6 +258,10 @@ frontend/src/
 ├── types/            # Type definitions
 ├── constants/        # Constants, error messages, API paths
 └── utils/            # Utility functions
+
+infra/
+├── app.py            # CDK app entry point
+└── stacks/           # CDK stack definitions
 
 tests/
 ├── unit/             # Unit tests (pytest)

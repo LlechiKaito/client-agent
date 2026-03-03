@@ -2,7 +2,8 @@
 
 ## 前提
 
-- AWS CLI + SAM CLI がインストール済み
+- AWS CLI がインストール済み
+- AWS CDK CLI がインストール済み（`npm install -g aws-cdk`）
 - AWS アカウントの認証情報が設定済み
 
 ## アーキテクチャ
@@ -19,31 +20,45 @@ Frontend → S3 Static Website Hosting
 
 ## デプロイ手順
 
-### 1. ビルド
+### 1. CDK セットアップ
 
 ```bash
-sam build
+cd infra
+pip install -r requirements.txt
 ```
 
-### 2. デプロイ（初回）
+### 2. 初回のみ: CDK Bootstrap
 
 ```bash
-sam deploy --guided
+cdk bootstrap
 ```
 
-パラメータの入力を求められます:
+### 3. デプロイ
 
-| パラメータ | 説明 | 例 |
-|-----------|------|---|
-| AppEnv | 環境名 | production |
-| FrontendUrl | フロントエンドURL | (デプロイ後のS3 URL) |
-| LineChannelSecret | LINE チャネルシークレット | |
-| LineChannelAccessToken | LINE チャネルアクセストークン | |
-| AnthropicApiKey | Anthropic API キー | |
-| GasWebappUrl | GAS WebApp URL (LINE ログ) | |
-| GasMailWebappUrl | GAS WebApp URL (Gmail) | |
+```bash
+cdk deploy
+```
 
-### 3. フロントエンドデプロイ
+コンテキストでアプリ名・環境名を指定可能:
+
+```bash
+cdk deploy -c app_name=client-agent -c app_env=production
+```
+
+### 4. Lambda 環境変数を設定
+
+デプロイ後、AWS コンソールまたは CLI で Lambda に環境変数を設定:
+
+| 環境変数 | 説明 | 例 |
+|---------|------|---|
+| `FRONTEND_URL` | フロントエンド URL | (デプロイ後の S3 URL) |
+| `LINE_CHANNEL_SECRET` | LINE チャネルシークレット | |
+| `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン | |
+| `ANTHROPIC_API_KEY` | Anthropic API キー | |
+| `GAS_WEBAPP_URL` | GAS WebApp URL (LINE ログ) | |
+| `GAS_MAIL_WEBAPP_URL` | GAS WebApp URL (Gmail) | |
+
+### 5. フロントエンドデプロイ
 
 ```bash
 cd frontend
@@ -51,14 +66,20 @@ npm run build
 aws s3 sync dist/ s3://<FrontendBucketName> --delete
 ```
 
-### 4. LINE Webhook URL 設定
+### 6. LINE Webhook URL 設定
 
 Outputs の `WebhookUrl` を LINE Developers Console の Webhook URL に設定する。
 
-### 5. 更新デプロイ
+### 7. 更新デプロイ
 
 ```bash
-sam build && sam deploy
+cd infra && cdk deploy
+```
+
+### 差分確認（デプロイ前）
+
+```bash
+cd infra && cdk diff
 ```
 
 ## コスト目安
@@ -75,10 +96,4 @@ Lambda 対応後もローカル開発は従来通り:
 
 ```bash
 docker compose up -d
-```
-
-SAM でローカルテストも可能:
-
-```bash
-sam local start-api
 ```
