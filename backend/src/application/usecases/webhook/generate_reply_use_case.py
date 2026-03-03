@@ -1,3 +1,5 @@
+import time
+
 from constants.ai import (
     ANTHROPIC_MAX_TOKENS,
     CHAT_LOG_PREFIX,
@@ -9,8 +11,12 @@ from constants.ai import (
     SECRETARY_SYSTEM_PROMPT,
 )
 from domain.commons.result import Result
+from domain.entities.conversation.message import ConversationMessage
 from domain.repositories.ai_chat.ai_chat_repository import AiChatRepository
 from domain.repositories.chat_log.chat_log_repository import ChatLogRepository
+from domain.repositories.conversation_memory.conversation_memory_repository import (
+    ConversationMemoryRepository,
+)
 from domain.repositories.mail_log.mail_log_repository import MailLogRepository
 from utils.text import truncate
 
@@ -21,12 +27,14 @@ class GenerateReplyUseCase:
         ai_chat_repository: AiChatRepository,
         chat_log_repository: ChatLogRepository,
         mail_log_repository: MailLogRepository,
+        conversation_memory_repository: ConversationMemoryRepository,
     ) -> None:
         self._ai_chat_repository = ai_chat_repository
         self._chat_log_repository = chat_log_repository
         self._mail_log_repository = mail_log_repository
+        self._conversation_memory = conversation_memory_repository
 
-    async def execute(self, user_message: str) -> Result[str, str]:
+    async def execute(self, user_id: str, user_message: str) -> Result[str, str]:
         context_parts: list[str] = []
         per_source_limit = MAX_CONTEXT_CHARS // 2
 
@@ -47,6 +55,24 @@ class GenerateReplyUseCase:
         else:
             enriched_message = user_message
 
-        return await self._ai_chat_repository.generate_reply(
-            enriched_message, SECRETARY_SYSTEM_PROMPT, ANTHROPIC_MAX_TOKENS,
+        history = self._conversation_memory.get_history(user_id)
+
+        self._conversation_memory.add_message(
+            user_id,
+            ConversationMessage(role="user", content=enriched_message, timestamp=time.time()),
         )
+
+        ai_result = await self._ai_chat_repository.generate_reply(
+            enriched_message, SECRETARY_SYSTEM_PROMPT, ANTHROPIC_MAX_TOKENS,
+            history=history,
+        )
+
+        if ai_result.is_success:
+            self._conversation_memory.add_message(
+                user_id,
+                ConversationMessage(
+                    role="assistant", content=ai_result.data, timestamp=time.time(),
+                ),
+            )
+
+        return ai_result

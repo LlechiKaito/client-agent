@@ -181,30 +181,28 @@ pip install -r requirements.txt
 cdk bootstrap
 ```
 
-#### 3. デプロイ
+#### 3. 設定ファイルを作成
+
+```bash
+cp cdk.context.example.json cdk.context.json
+```
+
+`cdk.context.json` を編集して値を設定:
+
+| キー | 説明 |
+|-----|------|
+| `frontend_url` | S3 Website URL（初回は `cdk deploy` 後に Outputs から取得して再デプロイ） |
+| `line_channel_secret` | LINE チャネルシークレット |
+| `line_channel_access_token` | LINE チャネルアクセストークン |
+| `anthropic_api_key` | Anthropic API キー |
+| `gas_webapp_url` | GAS WebApp URL（LINE ログ） |
+| `gas_mail_webapp_url` | GAS WebApp URL（Gmail） |
+
+#### 4. デプロイ
 
 ```bash
 cdk deploy
 ```
-
-コンテキストでアプリ名・環境名を指定可能:
-
-```bash
-cdk deploy -c app_name=client-agent -c app_env=production
-```
-
-#### 4. Lambda 環境変数を設定
-
-デプロイ後、AWS コンソールまたは CLI で Lambda に環境変数を設定:
-
-| 環境変数 | 説明 |
-|---------|------|
-| `FRONTEND_URL` | フロントエンド URL（S3 Website URL） |
-| `LINE_CHANNEL_SECRET` | LINE チャネルシークレット |
-| `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン |
-| `ANTHROPIC_API_KEY` | Anthropic API キー |
-| `GAS_WEBAPP_URL` | GAS WebApp URL（LINE ログ） |
-| `GAS_MAIL_WEBAPP_URL` | GAS WebApp URL（Gmail） |
 
 #### 5. フロントエンドデプロイ
 

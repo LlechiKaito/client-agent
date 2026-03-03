@@ -20,6 +20,7 @@ from infrastructure.external.anthropic.anthropic_chat_client import AnthropicCha
 from infrastructure.external.gas.gas_chat_log_client import GasChatLogClient
 from infrastructure.external.gas.gas_mail_client import GasMailClient
 from infrastructure.external.line.line_messaging_client import LineMessagingClient
+from infrastructure.memory.in_memory_conversation_store import InMemoryConversationStore
 from presentation.errors.error_handler import (
     application_error_handler,
     unhandled_error_handler,
@@ -55,10 +56,12 @@ def create_app() -> FastAPI:
     gas_mail_client = GasMailClient(
         webapp_url=GAS_MAIL_WEBAPP_URL,
     )
+    conversation_store = InMemoryConversationStore()
     generate_reply_use_case = GenerateReplyUseCase(
         ai_chat_repository=anthropic_chat_client,
         chat_log_repository=gas_chat_log_client,
         mail_log_repository=gas_mail_client,
+        conversation_memory_repository=conversation_store,
     )
     generate_summary_use_case = GenerateSummaryUseCase(
         ai_chat_repository=anthropic_chat_client,

@@ -11,6 +11,8 @@ dist/
 
 # CDK
 cdk.out/
+cdk.context.json
+!cdk.context.example.json
 
 # Node
 node_modules/

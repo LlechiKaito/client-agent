@@ -21,11 +21,25 @@ class ClientAgentStack(Stack):
         *,
         app_name: str,
         app_env: str,
+        frontend_url: str,
+        line_channel_secret: str,
+        line_channel_access_token: str,
+        anthropic_api_key: str,
+        gas_webapp_url: str,
+        gas_mail_webapp_url: str,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        webhook_function, function_url = self._create_webhook_function(app_env)
+        webhook_function, function_url = self._create_webhook_function(
+            app_env=app_env,
+            frontend_url=frontend_url,
+            line_channel_secret=line_channel_secret,
+            line_channel_access_token=line_channel_access_token,
+            anthropic_api_key=anthropic_api_key,
+            gas_webapp_url=gas_webapp_url,
+            gas_mail_webapp_url=gas_mail_webapp_url,
+        )
         frontend_bucket = self._create_frontend_bucket()
 
         self._add_outputs(function_url, frontend_bucket)
@@ -34,7 +48,14 @@ class ClientAgentStack(Stack):
         Tags.of(self).add("Env", app_env)
 
     def _create_webhook_function(
-        self, app_env: str,
+        self,
+        app_env: str,
+        frontend_url: str,
+        line_channel_secret: str,
+        line_channel_access_token: str,
+        anthropic_api_key: str,
+        gas_webapp_url: str,
+        gas_mail_webapp_url: str,
     ) -> tuple[lambda_.Function, lambda_.FunctionUrl]:
         fn = lambda_.Function(
             self,
@@ -46,6 +67,12 @@ class ClientAgentStack(Stack):
             memory_size=LAMBDA_MEMORY_MB,
             environment={
                 "APP_ENV": app_env,
+                "FRONTEND_URL": frontend_url,
+                "LINE_CHANNEL_SECRET": line_channel_secret,
+                "LINE_CHANNEL_ACCESS_TOKEN": line_channel_access_token,
+                "ANTHROPIC_API_KEY": anthropic_api_key,
+                "GAS_WEBAPP_URL": gas_webapp_url,
+                "GAS_MAIL_WEBAPP_URL": gas_mail_webapp_url,
             },
         )
 
@@ -56,7 +83,7 @@ class ClientAgentStack(Stack):
         return fn, function_url
 
     def _create_frontend_bucket(self) -> s3.Bucket:
-        bucket = s3.Bucket(
+        return s3.Bucket(
             self,
             "FrontendBucket",
             website_index_document="index.html",
@@ -69,8 +96,6 @@ class ClientAgentStack(Stack):
                 restrict_public_buckets=False,
             ),
         )
-
-        return bucket
 
     def _add_outputs(
         self,
