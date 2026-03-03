@@ -34,4 +34,9 @@ DOMAIN_ERRORS = {
         code="CONFLICT",
         status=409,
     ),
+    "INVALID_SIGNATURE": ErrorDefinition(
+        message="Invalid webhook signature",
+        code="INVALID_SIGNATURE",
+        status=400,
+    ),
 }

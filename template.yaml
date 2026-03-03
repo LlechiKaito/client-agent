@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: LINE Secretary Bot - Lambda Deployment
+
+Parameters:
+  AppName:
+    Type: String
+    Default: client-agent
+    Description: Application name for cost tracking tags
+  AppEnv:
+    Type: String
+    Default: production
+  FrontendUrl:
+    Type: String
+    Description: Frontend URL for CORS (S3 website URL or CloudFront)
+  LineChannelSecret:
+    Type: String
+    NoEcho: true
+  LineChannelAccessToken:
+    Type: String
+    NoEcho: true
+  AnthropicApiKey:
+    Type: String
+    NoEcho: true
+  GasWebappUrl:
+    Type: String
+    Description: GAS WebApp URL for LINE chat logs
+  GasMailWebappUrl:
+    Type: String
+    Description: GAS WebApp URL for Gmail
+
+Globals:
+  Function:
+    Timeout: 90
+    Runtime: python3.11
+    MemorySize: 256
+    Tags:
+      App: !Ref AppName
+      Env: !Ref AppEnv
+
+Resources:
+  WebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/src/
+      Handler: lambda_handler.handler
+      FunctionUrlConfig:
+        AuthType: NONE
+      Tags:
+        App: !Ref AppName
+        Env: !Ref AppEnv
+      Environment:
+        Variables:
+          APP_ENV: !Ref AppEnv
+          FRONTEND_URL: !Ref FrontendUrl
+          LINE_CHANNEL_SECRET: !Ref LineChannelSecret
+          LINE_CHANNEL_ACCESS_TOKEN: !Ref LineChannelAccessToken
+          ANTHROPIC_API_KEY: !Ref AnthropicApiKey
+          GAS_WEBAPP_URL: !Ref GasWebappUrl
+          GAS_MAIL_WEBAPP_URL: !Ref GasMailWebappUrl
+
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      Tags:
+        - Key: App
+          Value: !Ref AppName
+        - Key: Env
+          Value: !Ref AppEnv
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+
+Outputs:
+  WebhookUrl:
+    Description: Lambda Function URL (set this as LINE Webhook URL)
+    Value: !GetAtt WebhookFunctionUrl.FunctionUrl
+  FrontendUrl:
+    Description: S3 Website URL for frontend
+    Value: !GetAtt FrontendBucket.WebsiteURL
+  FrontendBucketName:
+    Description: S3 bucket name for frontend deployment
+    Value: !Ref FrontendBucket
