@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from linebot.v3.webhook import WebhookParser
 
 from application.errors.application_error import ApplicationError
@@ -10,7 +9,6 @@ from application.usecases.webhook.generate_summary_use_case import (
 )
 from config.settings import (
     ANTHROPIC_API_KEY,
-    FRONTEND_URL,
     GAS_MAIL_WEBAPP_URL,
     GAS_WEBAPP_URL,
     LINE_CHANNEL_ACCESS_TOKEN,
@@ -32,14 +30,6 @@ from presentation.routes.webhook_routes import router as webhook_router
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Client Agent API", version="0.1.0")
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[FRONTEND_URL],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
     app.add_exception_handler(ApplicationError, application_error_handler)
     app.add_exception_handler(Exception, unhandled_error_handler)

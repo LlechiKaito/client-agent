@@ -14,8 +14,6 @@ LINE Webhook → Lambda Function URL → FastAPI (Mangum)
                                        ├─ Claude API
                                        ├─ GAS WebApp
                                        └─ LINE push(結果)
-
-Frontend → S3 Static Website Hosting
 ```
 
 ## デプロイ手順
@@ -47,32 +45,21 @@ cdk deploy
 cdk deploy -c app_name=client-agent -c app_env=production
 ```
 
-### 4. Lambda 環境変数を設定
+環境変数は `cdk.context.json` で管理:
 
-デプロイ後、AWS コンソールまたは CLI で Lambda に環境変数を設定:
+| 環境変数 | 説明 |
+|---------|------|
+| `LINE_CHANNEL_SECRET` | LINE チャネルシークレット |
+| `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン |
+| `ANTHROPIC_API_KEY` | Anthropic API キー |
+| `GAS_WEBAPP_URL` | GAS WebApp URL (LINE ログ) |
+| `GAS_MAIL_WEBAPP_URL` | GAS WebApp URL (Gmail) |
 
-| 環境変数 | 説明 | 例 |
-|---------|------|---|
-| `FRONTEND_URL` | フロントエンド URL | (デプロイ後の S3 URL) |
-| `LINE_CHANNEL_SECRET` | LINE チャネルシークレット | |
-| `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン | |
-| `ANTHROPIC_API_KEY` | Anthropic API キー | |
-| `GAS_WEBAPP_URL` | GAS WebApp URL (LINE ログ) | |
-| `GAS_MAIL_WEBAPP_URL` | GAS WebApp URL (Gmail) | |
-
-### 5. フロントエンドデプロイ
-
-```bash
-cd frontend
-npm run build
-aws s3 sync dist/ s3://<FrontendBucketName> --delete
-```
-
-### 6. LINE Webhook URL 設定
+### 4. LINE Webhook URL 設定
 
 Outputs の `WebhookUrl` を LINE Developers Console の Webhook URL に設定する。
 
-### 7. 更新デプロイ
+### 5. 更新デプロイ
 
 ```bash
 cd infra && cdk deploy
@@ -89,7 +76,6 @@ cd infra && cdk diff
 | リソース | 月額 |
 |---------|------|
 | Lambda | $0 (Free Tier: 100万リクエスト/月) |
-| S3 | ~$0.01 |
 | **合計** | **~$0/月** |
 
 ## ローカル開発

@@ -5,7 +5,6 @@ LINE Secretary Bot - AI-powered conversational assistant.
 ## Tech Stack
 
 - **Backend**: Python / FastAPI (DDD + Clean Architecture)
-- **Frontend**: TypeScript / React / Vite / Tailwind CSS
 - **Tests**: pytest / httpx / Playwright
 
 ## Setup
@@ -24,7 +23,6 @@ LINE Secretary Bot - AI-powered conversational assistant.
 
 ```bash
 cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
 ```
 
 **backend/.env**
@@ -34,7 +32,6 @@ cp frontend/.env.example frontend/.env
 APP_HOST=0.0.0.0
 APP_PORT=8000
 APP_ENV=development
-FRONTEND_URL=http://localhost:5173
 
 # LINE（LINE Developers Console から取得）
 LINE_CHANNEL_SECRET=your-channel-secret
@@ -49,23 +46,9 @@ ANTHROPIC_API_KEY=your-anthropic-api-key
 | `APP_HOST` | サーバーバインドアドレス | 固定値 `0.0.0.0` |
 | `APP_PORT` | サーバーポート | 固定値 `8000` |
 | `APP_ENV` | 環境名 | `development` / `production` |
-| `FRONTEND_URL` | フロントエンド URL（CORS 許可対象） | ローカルなら `http://localhost:5173` |
 | `LINE_CHANNEL_SECRET` | LINE チャネルシークレット | LINE Developers Console > チャネル基本設定 |
 | `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン（長期） | LINE Developers Console > Messaging API設定 |
 | `ANTHROPIC_API_KEY` | Anthropic API キー | [Anthropic Console](https://console.anthropic.com/) > API Keys |
-
-**frontend/.env**
-
-```env
-# App
-VITE_API_URL=/api
-VITE_PROXY_TARGET=http://localhost:8000
-```
-
-| 変数 | 説明 |
-|------|------|
-| `VITE_API_URL` | API のベースパス |
-| `VITE_PROXY_TARGET` | 開発時のプロキシ先バックエンド URL |
 
 ### 3. Webhook URL を設定
 
@@ -92,7 +75,6 @@ ngrok http 8000
 docker compose up
 ```
 
-- Frontend: http://localhost:5173
 - Backend API: http://localhost:8000/api/health
 - Webhook: POST http://localhost:8000/callback
 
@@ -104,14 +86,6 @@ docker compose up
 cd backend
 pip install . ".[dev]"
 cd src && uvicorn main:app --reload
-```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm install
-npm run dev
 ```
 
 ## Usage
@@ -158,8 +132,6 @@ LINE → Lambda Function URL (HTTPS) → FastAPI (Mangum)
                                         ├─ LINE API (reply/push)
                                         ├─ Claude API (Anthropic)
                                         └─ GAS WebApp (LINE logs/Gmail)
-
-Frontend → S3 Static Website Hosting
 ```
 
 全リソースに `App` / `Env` タグが付与されるため、AWS Cost Explorer でアプリ単位のコスト確認が可能。
@@ -197,27 +169,19 @@ cp cdk.context.example.json cdk.context.json
 | `gas_webapp_url` | GAS WebApp URL（LINE ログ） |
 | `gas_mail_webapp_url` | GAS WebApp URL（Gmail） |
 
-`frontend_url` は S3 バケットの URL が自動で Lambda に設定されるため、手動設定不要。
-
-#### 4. フロントエンドをビルド
-
-```bash
-cd frontend && npm install && npm run build && cd ../infra
-```
-
-#### 5. デプロイ
+#### 4. デプロイ
 
 ```bash
 cdk deploy
 ```
 
-バックエンド（Lambda）+ フロントエンド（S3）が一括でデプロイされる。
+Lambda がデプロイされる。
 
-#### 6. LINE Webhook URL 設定
+#### 5. LINE Webhook URL 設定
 
 Outputs の `WebhookUrl` を [LINE Developers Console](https://developers.line.biz/) の Webhook URL に設定。
 
-#### 7. 更新デプロイ
+#### 6. 更新デプロイ
 
 ```bash
 cd infra && cdk deploy
@@ -234,7 +198,6 @@ AWS Cost Explorer → **タグ `App: client-agent`** でフィルタすると、
 | リソース | 月額 |
 |---------|------|
 | Lambda | $0（Free Tier: 100万リクエスト/月） |
-| S3 | ~$0.01 |
 | **合計** | **≒ $0/月** |
 
 ## Project Structure
@@ -249,15 +212,6 @@ backend/src/
 ├── config/           # Environment config
 ├── constants/        # Magic numbers, HTTP status codes
 └── utils/            # Pure utility functions
-
-frontend/src/
-├── pages/            # Page components (routing targets)
-├── components/       # Reusable UI components
-├── services/         # API clients (axios)
-├── hooks/            # Logic extraction (React hooks)
-├── types/            # Type definitions
-├── constants/        # Constants, error messages, API paths
-└── utils/            # Utility functions
 
 infra/
 ├── app.py            # CDK app entry point

@@ -11,7 +11,6 @@ def lambda_env():
         {
             "AWS_LAMBDA_FUNCTION_NAME": "test-function",
             "APP_ENV": "test",
-            "FRONTEND_URL": "http://localhost:5173",
         },
     ):
         import config.settings as settings_module
