@@ -64,7 +64,7 @@ async def test_generate_and_push_reply_sends_ai_response(
     )
 
     mock_generate_reply_use_case.execute.assert_called_once_with(
-        "会議の日程を調整してください"
+        "U1234567890", "会議の日程を調整してください",
     )
     mock_message_repository.push_text.assert_called_once_with(
         "U1234567890",

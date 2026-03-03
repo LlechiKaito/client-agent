@@ -22,7 +22,7 @@ class WebhookApplicationService:
         return await self._message_repository.reply_text(reply_token, THINKING_MESSAGE)
 
     async def generate_and_push_reply(self, user_id: str, text: str) -> Result[None, str]:
-        ai_result = await self._generate_reply_use_case.execute(text)
+        ai_result = await self._generate_reply_use_case.execute(user_id, text)
         if not ai_result.is_success:
             return ai_result
         return await self._message_repository.push_text(user_id, ai_result.data)

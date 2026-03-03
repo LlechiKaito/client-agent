@@ -7,6 +7,12 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+.venv/
+
+# CDK
+cdk.out/
+cdk.context.json
+!cdk.context.example.json
 
 # Node
 node_modules/

@@ -15,7 +15,6 @@ def app():
             "APP_HOST": "0.0.0.0",
             "APP_PORT": "8000",
             "APP_ENV": "test",
-            "FRONTEND_URL": "http://localhost:5173",
             "LINE_CHANNEL_SECRET": "test-secret",
             "LINE_CHANNEL_ACCESS_TOKEN": "test-token",
             "ANTHROPIC_API_KEY": "test-key",

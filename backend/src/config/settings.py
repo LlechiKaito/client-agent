@@ -24,7 +24,6 @@ def _optional_env(key: str, default: str) -> str:
 APP_HOST: str = _optional_env("APP_HOST", "0.0.0.0") if IS_LAMBDA else _require_env("APP_HOST")
 APP_PORT: int = int(_optional_env("APP_PORT", "8000") if IS_LAMBDA else _require_env("APP_PORT"))
 APP_ENV: str = _require_env("APP_ENV")
-FRONTEND_URL: str = _require_env("FRONTEND_URL")
 
 LINE_CHANNEL_SECRET: str = _require_env("LINE_CHANNEL_SECRET")
 LINE_CHANNEL_ACCESS_TOKEN: str = _require_env("LINE_CHANNEL_ACCESS_TOKEN")
