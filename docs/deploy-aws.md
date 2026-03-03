@@ -24,7 +24,7 @@ Frontend → S3 Static Website Hosting
 
 ```bash
 cd infra
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ### 2. 初回のみ: CDK Bootstrap
