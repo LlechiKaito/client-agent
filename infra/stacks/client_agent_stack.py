@@ -1,4 +1,5 @@
 from aws_cdk import (
+    BundlingOptions,
     CfnOutput,
     Duration,
     Stack,
@@ -6,6 +7,8 @@ from aws_cdk import (
     aws_lambda as lambda_,
 )
 from constructs import Construct
+
+BACKEND_SRC_PATH = "../backend/src"
 
 LAMBDA_TIMEOUT_SECONDS = 90
 LAMBDA_MEMORY_MB = 256
@@ -57,7 +60,17 @@ class ClientAgentStack(Stack):
             "WebhookFunction",
             runtime=LAMBDA_RUNTIME,
             handler="lambda_handler.handler",
-            code=lambda_.Code.from_asset("../backend/src"),
+            code=lambda_.Code.from_asset(
+                BACKEND_SRC_PATH,
+                bundling=BundlingOptions(
+                    image=LAMBDA_RUNTIME.bundling_image,
+                    command=[
+                        "bash", "-c",
+                        "pip install -r requirements.txt -t /asset-output"
+                        " && cp -r . /asset-output",
+                    ],
+                ),
+            ),
             timeout=Duration.seconds(LAMBDA_TIMEOUT_SECONDS),
             memory_size=LAMBDA_MEMORY_MB,
             environment={
