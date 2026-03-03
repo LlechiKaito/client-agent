@@ -1,0 +1,32 @@
+[
+  {
+    "Name": "/client-agent/LINE_CHANNEL_SECRET",
+    "Value": "your-channel-secret",
+    "Type": "SecureString",
+    "Description": "LINE channel secret"
+  },
+  {
+    "Name": "/client-agent/LINE_CHANNEL_ACCESS_TOKEN",
+    "Value": "your-channel-access-token",
+    "Type": "SecureString",
+    "Description": "LINE channel access token"
+  },
+  {
+    "Name": "/client-agent/ANTHROPIC_API_KEY",
+    "Value": "your-anthropic-api-key",
+    "Type": "SecureString",
+    "Description": "Anthropic API key"
+  },
+  {
+    "Name": "/client-agent/GAS_WEBAPP_URL",
+    "Value": "your-gas-webapp-url",
+    "Type": "SecureString",
+    "Description": "GAS WebApp URL for LINE logs"
+  },
+  {
+    "Name": "/client-agent/GAS_MAIL_WEBAPP_URL",
+    "Value": "your-gas-mail-webapp-url",
+    "Type": "SecureString",
+    "Description": "GAS WebApp URL for Gmail"
+  }
+]
