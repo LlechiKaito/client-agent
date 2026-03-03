@@ -191,12 +191,13 @@ cp cdk.context.example.json cdk.context.json
 
 | キー | 説明 |
 |-----|------|
-| `frontend_url` | S3 Website URL（初回は `cdk deploy` 後に Outputs から取得して再デプロイ） |
 | `line_channel_secret` | LINE チャネルシークレット |
 | `line_channel_access_token` | LINE チャネルアクセストークン |
 | `anthropic_api_key` | Anthropic API キー |
 | `gas_webapp_url` | GAS WebApp URL（LINE ログ） |
 | `gas_mail_webapp_url` | GAS WebApp URL（Gmail） |
+
+`frontend_url` は S3 バケットの URL が自動で Lambda に設定されるため、手動設定不要。
 
 #### 4. フロントエンドをビルド
 

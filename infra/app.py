@@ -13,7 +13,6 @@ ClientAgentStack(
     f"{app_name}-stack",
     app_name=app_name,
     app_env=app_env,
-    frontend_url=app.node.try_get_context("frontend_url") or "",
     line_channel_secret=app.node.try_get_context("line_channel_secret") or "",
     line_channel_access_token=app.node.try_get_context("line_channel_access_token") or "",
     anthropic_api_key=app.node.try_get_context("anthropic_api_key") or "",

@@ -24,7 +24,6 @@ class ClientAgentStack(Stack):
         *,
         app_name: str,
         app_env: str,
-        frontend_url: str,
         line_channel_secret: str,
         line_channel_access_token: str,
         anthropic_api_key: str,
@@ -34,17 +33,18 @@ class ClientAgentStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        frontend_bucket = self._create_frontend_bucket()
+        self._deploy_frontend(frontend_bucket)
+
         webhook_function, function_url = self._create_webhook_function(
             app_env=app_env,
-            frontend_url=frontend_url,
+            frontend_url=frontend_bucket.bucket_website_url,
             line_channel_secret=line_channel_secret,
             line_channel_access_token=line_channel_access_token,
             anthropic_api_key=anthropic_api_key,
             gas_webapp_url=gas_webapp_url,
             gas_mail_webapp_url=gas_mail_webapp_url,
         )
-        frontend_bucket = self._create_frontend_bucket()
-        self._deploy_frontend(frontend_bucket)
 
         self._add_outputs(function_url, frontend_bucket)
 
