@@ -153,21 +153,25 @@ pip install -r requirements.txt
 cdk bootstrap
 ```
 
-#### 3. 設定ファイルを作成
+#### 3. SSM Parameter Store に機密情報を登録
+
+機密情報は CDK に渡さず、SSM Parameter Store（SecureString）で管理する。
 
 ```bash
-cp cdk.context.example.json cdk.context.json
+aws ssm put-parameter --name "/client-agent/LINE_CHANNEL_SECRET" --value "your-secret" --type SecureString
+aws ssm put-parameter --name "/client-agent/LINE_CHANNEL_ACCESS_TOKEN" --value "your-token" --type SecureString
+aws ssm put-parameter --name "/client-agent/ANTHROPIC_API_KEY" --value "your-key" --type SecureString
+aws ssm put-parameter --name "/client-agent/GAS_WEBAPP_URL" --value "your-url" --type SecureString
+aws ssm put-parameter --name "/client-agent/GAS_MAIL_WEBAPP_URL" --value "your-url" --type SecureString
 ```
 
-`cdk.context.json` を編集して値を設定:
-
-| キー | 説明 |
-|-----|------|
-| `line_channel_secret` | LINE チャネルシークレット |
-| `line_channel_access_token` | LINE チャネルアクセストークン |
-| `anthropic_api_key` | Anthropic API キー |
-| `gas_webapp_url` | GAS WebApp URL（LINE ログ） |
-| `gas_mail_webapp_url` | GAS WebApp URL（Gmail） |
+| SSM パラメータ名 | 説明 |
+|-----------------|------|
+| `/client-agent/LINE_CHANNEL_SECRET` | LINE チャネルシークレット |
+| `/client-agent/LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン |
+| `/client-agent/ANTHROPIC_API_KEY` | Anthropic API キー |
+| `/client-agent/GAS_WEBAPP_URL` | GAS WebApp URL（LINE ログ） |
+| `/client-agent/GAS_MAIL_WEBAPP_URL` | GAS WebApp URL（Gmail） |
 
 #### 4. デプロイ
 

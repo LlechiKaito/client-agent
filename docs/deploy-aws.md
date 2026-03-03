@@ -14,6 +14,8 @@ LINE Webhook → Lambda Function URL → FastAPI (Mangum)
                                        ├─ Claude API
                                        ├─ GAS WebApp
                                        └─ LINE push(結果)
+
+Lambda → SSM Parameter Store (SecureString) で機密情報を取得
 ```
 
 ## デプロイ手順
@@ -33,7 +35,28 @@ pip install -r requirements.txt
 cdk bootstrap
 ```
 
-### 3. デプロイ
+### 3. SSM Parameter Store に機密情報を登録
+
+機密情報は CDK に渡さず、SSM Parameter Store で管理する。
+初回のみ実行。更新時は `--overwrite` フラグを付ける。
+
+```bash
+aws ssm put-parameter --name "/client-agent/LINE_CHANNEL_SECRET" --value "your-secret" --type SecureString
+aws ssm put-parameter --name "/client-agent/LINE_CHANNEL_ACCESS_TOKEN" --value "your-token" --type SecureString
+aws ssm put-parameter --name "/client-agent/ANTHROPIC_API_KEY" --value "your-key" --type SecureString
+aws ssm put-parameter --name "/client-agent/GAS_WEBAPP_URL" --value "your-url" --type SecureString
+aws ssm put-parameter --name "/client-agent/GAS_MAIL_WEBAPP_URL" --value "your-url" --type SecureString
+```
+
+| SSM パラメータ名 | 説明 |
+|-----------------|------|
+| `/client-agent/LINE_CHANNEL_SECRET` | LINE チャネルシークレット |
+| `/client-agent/LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン |
+| `/client-agent/ANTHROPIC_API_KEY` | Anthropic API キー |
+| `/client-agent/GAS_WEBAPP_URL` | GAS WebApp URL (LINE ログ) |
+| `/client-agent/GAS_MAIL_WEBAPP_URL` | GAS WebApp URL (Gmail) |
+
+### 4. デプロイ
 
 ```bash
 cdk deploy
@@ -45,21 +68,14 @@ cdk deploy
 cdk deploy -c app_name=client-agent -c app_env=production
 ```
 
-環境変数は `cdk.context.json` で管理:
+CDK は Lambda に `SSM_PREFIX=/client-agent/` のみ環境変数として渡す。
+機密情報は Lambda 起動時に SSM から取得される。
 
-| 環境変数 | 説明 |
-|---------|------|
-| `LINE_CHANNEL_SECRET` | LINE チャネルシークレット |
-| `LINE_CHANNEL_ACCESS_TOKEN` | LINE チャネルアクセストークン |
-| `ANTHROPIC_API_KEY` | Anthropic API キー |
-| `GAS_WEBAPP_URL` | GAS WebApp URL (LINE ログ) |
-| `GAS_MAIL_WEBAPP_URL` | GAS WebApp URL (Gmail) |
-
-### 4. LINE Webhook URL 設定
+### 5. LINE Webhook URL 設定
 
 Outputs の `WebhookUrl` を LINE Developers Console の Webhook URL に設定する。
 
-### 5. 更新デプロイ
+### 6. 更新デプロイ
 
 ```bash
 cd infra && cdk deploy
@@ -76,11 +92,12 @@ cd infra && cdk diff
 | リソース | 月額 |
 |---------|------|
 | Lambda | $0 (Free Tier: 100万リクエスト/月) |
+| SSM Parameter Store | $0 (Standard パラメータは無料) |
 | **合計** | **~$0/月** |
 
 ## ローカル開発
 
-Lambda 対応後もローカル開発は従来通り:
+Lambda 対応後もローカル開発は従来通り `.env` から読み込み:
 
 ```bash
 docker compose up -d
