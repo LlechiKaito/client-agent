@@ -25,15 +25,17 @@ class ClientAgentStack(Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        webhook_function = self._create_webhook_function(app_env)
+        webhook_function, function_url = self._create_webhook_function(app_env)
         frontend_bucket = self._create_frontend_bucket()
 
-        self._add_outputs(webhook_function, frontend_bucket)
+        self._add_outputs(function_url, frontend_bucket)
 
         Tags.of(self).add("App", app_name)
         Tags.of(self).add("Env", app_env)
 
-    def _create_webhook_function(self, app_env: str) -> lambda_.Function:
+    def _create_webhook_function(
+        self, app_env: str,
+    ) -> tuple[lambda_.Function, lambda_.FunctionUrl]:
         fn = lambda_.Function(
             self,
             "WebhookFunction",
@@ -47,9 +49,11 @@ class ClientAgentStack(Stack):
             },
         )
 
-        fn.add_function_url(auth_type=lambda_.FunctionUrlAuthType.NONE)
+        function_url = fn.add_function_url(
+            auth_type=lambda_.FunctionUrlAuthType.NONE,
+        )
 
-        return fn
+        return fn, function_url
 
     def _create_frontend_bucket(self) -> s3.Bucket:
         bucket = s3.Bucket(
@@ -70,14 +74,14 @@ class ClientAgentStack(Stack):
 
     def _add_outputs(
         self,
-        webhook_function: lambda_.Function,
+        function_url: lambda_.FunctionUrl,
         frontend_bucket: s3.Bucket,
     ) -> None:
         CfnOutput(
             self,
             "WebhookUrl",
             description="Lambda Function URL (set this as LINE Webhook URL)",
-            value=webhook_function.function_url or "",
+            value=function_url.url,
         )
         CfnOutput(
             self,
